@@ -1,16 +1,174 @@
-# ITsMagic Engine 2.0 Documentation
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Quiz Tabela Periódica PRO</title>
 
-This documentation brings together everything you need to use ITsMagic Engine 2.0: beginner guides, essential concepts, and the full Java runtime API reference.
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    background: #0f172a;
+    color: white;
+}
 
-## What this documentation covers
+button {
+    padding: 10px;
+    margin: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
 
-- Workflow guides: creating projects, scenes, objects, and scripts.
-- Key engine concepts such as components and virtual attributes.
-- Complete reference for Java runtime classes, with methods, attributes, and types.
+.opcao {
+    display: block;
+    width: 200px;
+    margin: 10px auto;
+    background: #1e293b;
+    color: white;
+}
 
-## How to navigate it
+.opcao:hover {
+    background: #334155;
+}
 
-- **Getting Started**: the shortest route to your first project.
-- **By The Numbers**: a visual snapshot of the Java API, NoCode, and Material Graph catalogs.
-- **Java API**: full class catalog organized by category.
-- **Virtual Attributes**: explains how getters/setters become properties in ITsMagic.
+.tela { display: none; }
+.ativa { display: block; }
+
+#proxima { background: green; }
+</style>
+</head>
+
+<body>
+
+<!-- JOGO -->
+<div id="jogo" class="tela ativa">
+    <h2 id="pergunta"></h2>
+    <div id="opcoes"></div>
+    <p id="resultado"></p>
+    <p>⭐ Pontos: <span id="pontos">0</span></p>
+    <button id="proxima" onclick="novaPergunta()">Próxima</button>
+</div>
+
+<!-- VITÓRIA -->
+<div id="vitoria" class="tela">
+    <h1>🏆 Você terminou!</h1>
+    <p>Sua pontuação: <span id="final"></span></p>
+    <button onclick="salvarRanking()">💾 Salvar no Ranking</button>
+    <button onclick="verRanking()">📊 Ver Ranking</button>
+    <button onclick="reiniciar()">🔁 Jogar de novo</button>
+</div>
+
+<!-- RANKING -->
+<div id="ranking" class="tela">
+    <h1>📊 Ranking</h1>
+    <ul id="listaRanking"></ul>
+    <button onclick="reiniciar()">🔁 Voltar</button>
+</div>
+
+<script>
+const perguntas = [
+{
+    pergunta: "Qual é o símbolo do Oxigênio?",
+    opcoes: ["O", "Ox", "Og", "X"],
+    correta: "O"
+},
+{
+    pergunta: "Número atômico do Hidrogênio?",
+    opcoes: ["1", "2", "8", "10"],
+    correta: "1"
+},
+{
+    pergunta: "Símbolo do Ouro?",
+    opcoes: ["Au", "Ag", "O", "Gd"],
+    correta: "Au"
+},
+{
+    pergunta: "Elemento Na?",
+    opcoes: ["Nitrogênio", "Sódio", "Neônio", "Níquel"],
+    correta: "Sódio"
+}
+];
+
+let atual = 0;
+let pontos = 0;
+
+function mostrarTela(id) {
+    document.querySelectorAll(".tela").forEach(t => t.classList.remove("ativa"));
+    document.getElementById(id).classList.add("ativa");
+}
+
+function novaPergunta() {
+    document.getElementById("resultado").innerText = "";
+
+    if (atual >= perguntas.length) {
+        document.getElementById("final").innerText = pontos;
+        mostrarTela("vitoria");
+        return;
+    }
+
+    let p = perguntas[atual];
+
+    document.getElementById("pergunta").innerText = p.pergunta;
+
+    let opcoesHTML = "";
+    p.opcoes.forEach(op => {
+        opcoesHTML += `<button class="opcao" onclick="responder('${op}')">${op}</button>`;
+    });
+
+    document.getElementById("opcoes").innerHTML = opcoesHTML;
+
+    atual++;
+}
+
+function responder(resposta) {
+    let p = perguntas[atual - 1];
+
+    if (resposta === p.correta) {
+        document.getElementById("resultado").innerText = "✅ Acertou!";
+        pontos++;
+        document.getElementById("pontos").innerText = pontos;
+    } else {
+        document.getElementById("resultado").innerText = "❌ Errou! " + p.correta;
+    }
+}
+
+function salvarRanking() {
+    let nome = prompt("Seu nome:");
+    if (!nome) return;
+
+    let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+    ranking.push({ nome, pontos });
+
+    ranking.sort((a, b) => b.pontos - a.pontos);
+
+    localStorage.setItem("ranking", JSON.stringify(ranking));
+    verRanking();
+}
+
+function verRanking() {
+    let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+    let lista = "";
+
+    ranking.forEach(r => {
+        lista += `<li>${r.nome} - ${r.pontos} pts</li>`;
+    });
+
+    document.getElementById("listaRanking").innerHTML = lista;
+    mostrarTela("ranking");
+}
+
+function reiniciar() {
+    atual = 0;
+    pontos = 0;
+    document.getElementById("pontos").innerText = 0;
+    mostrarTela("jogo");
+    novaPergunta();
+}
+
+// começa direto
+novaPergunta();
+</script>
+
+</body>
+</html>
